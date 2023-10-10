@@ -1,0 +1,57 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Poll {
+  id            String   @unique
+  topic         String
+  votesPerVoter Int
+  adminID       String
+  hasStarted    Boolean? @default(false)
+
+  @@map(name: "poll")
+}
+
+model Participant {
+  id       String    @unique
+  name     String
+  rankings Ranking[] @relation("ParticipantRankings")
+  pollID   String
+
+  @@map(name: "participants")
+}
+
+model Nomination {
+  id               String @unique
+  nominationUserID String
+  nominationText   String
+  pollID           String
+
+  @@map(name: "nominations")
+}
+
+model Ranking {
+  participantID       String      @unique
+  participant         Participant @relation("ParticipantRankings", fields: [participantID], references: [id])
+  participantRankings String[]
+  pollID              String
+
+  @@map(name: "rankings")
+}
+
+model Result {
+  pollID         String @unique
+  nominationID   String
+  nominationText String
+  score          String
+
+  @@map(name: "results")
+}
