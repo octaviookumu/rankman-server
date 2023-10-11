@@ -1,7 +1,12 @@
-import { Injectable, Logger } from '@nestjs/common';
+import {
+  Injectable,
+  InternalServerErrorException,
+  Logger,
+} from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { Poll } from 'src/shared';
 import {
+  AddParticipantData,
   CreatePollData,
   JoinPollFields,
   PollDBData,
@@ -56,6 +61,59 @@ export class PollRepository {
       return currentPoll;
     } catch (error) {
       console.log('error', error);
+    } finally {
+      await this.prismaService.$disconnect();
+    }
+  }
+
+  async addParticipant({
+    pollID,
+    userID,
+    name,
+  }: AddParticipantData): Promise<PollDBData> {
+    this.logger.log(
+      `Attempting to add a participant with userID/name: ${userID}/${name} to pollID: ${pollID}`,
+    );
+
+    const initialParticipant = {
+      id: userID,
+      name,
+      pollID,
+    };
+
+    try {
+      this.prismaService.participant.create({
+        data: initialParticipant,
+      });
+
+      return this.getPoll(pollID);
+    } catch (error) {
+      this.logger.error(
+        `Failed to add a participant with userID/name: ${userID}/${name} to pollID: ${pollID}`,
+        error,
+      );
+      throw new InternalServerErrorException(
+        `Failed to add a participant with userID/name: ${userID}/${name} to pollID: ${pollID}`,
+      );
+    }
+  }
+
+  async removeParticipant(pollID: string, userID: string): Promise<PollDBData> {
+    this.logger.log(`removing userID: ${userID} from poll: ${pollID}`);
+
+    try {
+      await this.prismaService.participant.delete({
+        where: {
+          id: userID,
+        },
+      });
+      return this.getPoll(pollID);
+    } catch (error) {
+      this.logger.error(
+        `Failed to remove userID: ${userID} from poll: ${pollID}`,
+        error,
+      );
+      throw new InternalServerErrorException('Failed to remove participant');
     }
   }
 }

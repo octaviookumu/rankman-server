@@ -1,6 +1,6 @@
-// import { Request } from 'express';
+import { Request } from 'express';
 import { Nomination } from './poll-interfaces';
-// import { Socket } from 'socket.io';
+import { Socket } from 'socket.io';
 
 // service types
 export interface CreatePollFields {
@@ -65,14 +65,14 @@ export interface AddParticipantRankingsData {
 }
 
 // guard types
-// export type AuthPayload = {
-//   userID: string;
-//   pollID: string;
-//   name: string;
-// };
+export interface AuthPayload {
+  userID: string;
+  pollID: string;
+  name: string;
+}
 
-// export type RequestWithAuth = Request & AuthPayload;
-// export type SocketWithAuth = Socket & AuthPayload;
+export type RequestWithAuth = Request & AuthPayload;
+export type SocketWithAuth = Socket & AuthPayload;
 
 export interface PollDBData {
   id: string;

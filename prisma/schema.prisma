@@ -39,8 +39,8 @@ model Nomination {
 }
 
 model Ranking {
-  participantID       String      @unique
-  participant         Participant @relation("ParticipantRankings", fields: [participantID], references: [id])
+  participantID       String       @unique
+  participant         Participant? @relation("ParticipantRankings", fields: [participantID], references: [id])
   participantRankings String[]
   pollID              String
 

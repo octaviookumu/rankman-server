@@ -2,9 +2,11 @@ import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import {
+  AddParticipantFields,
   CreatePollFields,
   JoinPollFields,
   PollDBData,
+  RejoinPollFields,
 } from 'src/shared/interfaces';
 import { createPollID, createUserID } from 'src/utils';
 import { PollRepository } from './poll.repository';
@@ -18,6 +20,8 @@ export class PollService {
   ) {}
 
   private readonly logger = new Logger(PollService.name);
+  secret = this.configService.get('JWT_SECRET');
+  pollDuration = this.configService.get('POLL_DURATION');
 
   async createPoll(fields: CreatePollFields): Promise<{
     poll: PollDBData;
@@ -44,11 +48,9 @@ export class PollService {
       name: fields.name,
     };
 
-    const secret = this.configService.get('JWT_SECRET');
-
     const signedString = await this.jwtService.signAsync(payload, {
-      expiresIn: '16',
-      secret,
+      secret: this.secret,
+      expiresIn: this.pollDuration,
     });
 
     return {
@@ -72,15 +74,14 @@ export class PollService {
       `Creating token string for pollID: ${joinedPoll.id} and userID: ${userID}`,
     );
 
-    const secret = this.configService.get('JWT_SECRET');
-
     const signedString = await this.jwtService.signAsync(
       {
         pollID: joinedPoll.id,
         name: fields.name,
       },
       {
-        secret,
+        secret: this.secret,
+        expiresIn: this.pollDuration,
       },
     );
 
@@ -90,11 +91,30 @@ export class PollService {
     };
   }
 
-  findAll() {
-    return `This action returns all poll`;
+  async addParticipant(addParticipant: AddParticipantFields) {
+    return this.pollRepository.addParticipant(addParticipant);
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} poll`;
+  async removeParticipant(pollID: string, userID: string) {
+    const poll = await this.pollRepository.getPoll(pollID);
+
+    if (!poll.hasStarted) {
+      const updatedPoll = await this.pollRepository.removeParticipant(
+        pollID,
+        userID,
+      );
+      return updatedPoll;
+    }
+
+    // TODO: Consider adding a notification if poll hasStarted
+  }
+
+  async rejoinPoll(fields: RejoinPollFields) {
+    this.logger.debug(
+      `Rejoining poll with ID: ${fields.pollID} for user with ID: ${fields.userID} with name: ${fields.name}`,
+    );
+
+    const rejoinedPoll = await this.pollRepository.addParticipant(fields);
+    return rejoinedPoll;
   }
 }
