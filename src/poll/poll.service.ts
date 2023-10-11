@@ -1,7 +1,11 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
-import { CreatePollFields, JoinPollFields } from 'src/shared/interfaces';
+import {
+  CreatePollFields,
+  JoinPollFields,
+  PollDBData,
+} from 'src/shared/interfaces';
 import { createPollID, createUserID } from 'src/utils';
 import { PollRepository } from './poll.repository';
 
@@ -15,7 +19,10 @@ export class PollService {
 
   private readonly logger = new Logger(PollService.name);
 
-  async createPoll(fields: CreatePollFields) {
+  async createPoll(fields: CreatePollFields): Promise<{
+    poll: PollDBData;
+    accessToken: string;
+  }> {
     this.logger.debug(`fields: `, fields);
     const pollID = createPollID();
     const userID = createUserID();
@@ -50,8 +57,37 @@ export class PollService {
     };
   }
 
-  async joinPoll(fields: JoinPollFields) {
-    return this.pollRepository.joinPoll(fields);
+  async joinPoll(fields: JoinPollFields): Promise<{
+    poll: PollDBData;
+    accessToken: string;
+  }> {
+    const userID = createUserID();
+    this.logger.debug(
+      `Fetching poll with ID: ${fields.pollID} for user with ID: ${userID}`,
+    );
+
+    const joinedPoll = await this.pollRepository.getPoll(fields.pollID);
+
+    this.logger.debug(
+      `Creating token string for pollID: ${joinedPoll.id} and userID: ${userID}`,
+    );
+
+    const secret = this.configService.get('JWT_SECRET');
+
+    const signedString = await this.jwtService.signAsync(
+      {
+        pollID: joinedPoll.id,
+        name: fields.name,
+      },
+      {
+        secret,
+      },
+    );
+
+    return {
+      poll: joinedPoll,
+      accessToken: signedString,
+    };
   }
 
   findAll() {

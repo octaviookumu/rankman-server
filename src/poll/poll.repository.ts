@@ -42,7 +42,20 @@ export class PollRepository {
     }
   }
 
-  async joinPoll(fields: JoinPollFields) {
-    return 'Join poll';
+  async getPoll(pollID: string): Promise<PollDBData> {
+    this.logger.log(`Attempting to get poll with: ${pollID}`);
+
+    try {
+      const currentPoll = await this.prismaService.poll.findUnique({
+        where: {
+          id: pollID,
+        },
+      });
+
+      console.log('currentPoll', currentPoll);
+      return currentPoll;
+    } catch (error) {
+      console.log('error', error);
+    }
   }
 }
