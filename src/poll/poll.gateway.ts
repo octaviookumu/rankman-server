@@ -11,12 +11,14 @@ import {
 import { PollService } from './poll.service';
 import { CreatePollDto } from './dto/create-poll.dto';
 import { UpdatePollDto } from './dto/update-poll.dto';
-import { Logger, UsePipes, ValidationPipe } from '@nestjs/common';
+import { Logger, UseFilters, UsePipes, ValidationPipe } from '@nestjs/common';
 import { Namespace } from 'socket.io';
 import { SocketWithAuth } from 'src/shared/interfaces';
 import { NominationDto } from './dto/nomination.dto';
+import { WsCatchAllFilter } from './exceptions/ws-catch-all-filter';
 
 @UsePipes(new ValidationPipe())
+@UseFilters(new WsCatchAllFilter())
 @WebSocketGateway({
   namespace: 'poll',
 })
