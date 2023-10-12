@@ -11,11 +11,12 @@ import {
 import { PollService } from './poll.service';
 import { CreatePollDto } from './dto/create-poll.dto';
 import { UpdatePollDto } from './dto/update-poll.dto';
-import { Logger } from '@nestjs/common';
+import { Logger, UsePipes, ValidationPipe } from '@nestjs/common';
 import { Namespace } from 'socket.io';
 import { SocketWithAuth } from 'src/shared/interfaces';
 import { NominationDto } from './dto/nomination.dto';
 
+@UsePipes(new ValidationPipe())
 @WebSocketGateway({
   namespace: 'poll',
 })
