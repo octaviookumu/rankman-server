@@ -6,6 +6,7 @@ import {
 import { PrismaService } from 'src/prisma/prisma.service';
 import { Poll } from 'src/shared';
 import {
+  AddNominationData,
   AddParticipantData,
   CreatePollData,
   JoinPollFields,
@@ -114,6 +115,39 @@ export class PollRepository {
         error,
       );
       throw new InternalServerErrorException('Failed to remove participant');
+    }
+  }
+
+  async addNomination({
+    pollID,
+    nominationID,
+    nomination,
+  }: AddNominationData): Promise<PollDBData> {
+    const initialNomination = {
+      id: nominationID,
+      pollID,
+      nominationUserID: nomination.userID,
+      nominationText: nomination.text,
+    };
+
+    this.logger.log(
+      `Attempting to add a nomination with nominationID/nomination: ${nominationID}/${nomination.text} to pollID: ${pollID}`,
+    );
+
+    try {
+      await this.prismaService.nomination.create({
+        data: initialNomination,
+      });
+
+      return this.getPoll(pollID);
+    } catch (error) {
+      this.logger.error(
+        `Failed to add a nomination with nominationID/text: ${nominationID}/${nomination.text} to pollID: ${pollID}`,
+        error,
+      );
+      throw new InternalServerErrorException(
+        `Failed to add a nomination with nominationID/text: ${nominationID}/${nomination.text} to pollID: ${pollID}`,
+      );
     }
   }
 }

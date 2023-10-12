@@ -2,13 +2,14 @@ import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import {
+  AddNominationFields,
   AddParticipantFields,
   CreatePollFields,
   JoinPollFields,
   PollDBData,
   RejoinPollFields,
 } from 'src/shared/interfaces';
-import { createPollID, createUserID } from 'src/utils';
+import { createNominationID, createPollID, createUserID } from 'src/utils';
 import { PollRepository } from './poll.repository';
 
 @Injectable()
@@ -116,5 +117,20 @@ export class PollService {
 
     const rejoinedPoll = await this.pollRepository.addParticipant(fields);
     return rejoinedPoll;
+  }
+
+  async addNomination({
+    pollID,
+    userID,
+    text,
+  }: AddNominationFields): Promise<PollDBData> {
+    return this.pollRepository.addNomination({
+      pollID,
+      nominationID: createNominationID(),
+      nomination: {
+        userID,
+        text,
+      },
+    });
   }
 }

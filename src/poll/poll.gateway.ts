@@ -6,6 +6,7 @@ import {
   OnGatewayConnection,
   OnGatewayDisconnect,
   WebSocketServer,
+  ConnectedSocket,
 } from '@nestjs/websockets';
 import { PollService } from './poll.service';
 import { CreatePollDto } from './dto/create-poll.dto';
@@ -13,6 +14,7 @@ import { UpdatePollDto } from './dto/update-poll.dto';
 import { Logger } from '@nestjs/common';
 import { Namespace } from 'socket.io';
 import { SocketWithAuth } from 'src/shared/interfaces';
+import { NominationDto } from './dto/nomination.dto';
 
 @WebSocketGateway({
   namespace: 'poll',
@@ -85,5 +87,23 @@ export class PollGateway
     if (updatedPoll) {
       this.io.to(roomName).emit('poll_updated', updatedPoll);
     }
+  }
+
+  @SubscribeMessage('nominate')
+  async nominate(
+    @MessageBody() nomination: NominationDto,
+    @ConnectedSocket() client: SocketWithAuth,
+  ): Promise<void> {
+    this.logger.debug(
+      `Attempting to add nomination for user ${client.userID} to poll ${client.pollID}\n${nomination.text}`,
+    );
+
+    const updatedPoll = await this.pollService.addNomination({
+      pollID: client.pollID,
+      userID: client.userID,
+      text: nomination.text,
+    });
+
+    this.io.to(client.pollID).emit('poll_updated', updatedPoll);
   }
 }
