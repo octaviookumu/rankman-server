@@ -11,11 +11,18 @@ import {
 import { PollService } from './poll.service';
 import { CreatePollDto } from './dto/create-poll.dto';
 import { UpdatePollDto } from './dto/update-poll.dto';
-import { Logger, UseFilters, UsePipes, ValidationPipe } from '@nestjs/common';
+import {
+  Logger,
+  UseFilters,
+  UseGuards,
+  UsePipes,
+  ValidationPipe,
+} from '@nestjs/common';
 import { Namespace } from 'socket.io';
 import { SocketWithAuth } from 'src/shared/interfaces';
 import { NominationDto } from './dto/nomination.dto';
 import { WsCatchAllFilter } from './exceptions/ws-catch-all-filter';
+import { GatewayAdminGuard } from 'src/auth/gateway-admin.guard';
 
 @UsePipes(new ValidationPipe())
 @UseFilters(new WsCatchAllFilter())
@@ -89,6 +96,26 @@ export class PollGateway
     // in this case the socket is disconnected but not the poll state
     if (updatedPoll) {
       this.io.to(roomName).emit('poll_updated', updatedPoll);
+    }
+  }
+
+  @UseGuards(GatewayAdminGuard)
+  @SubscribeMessage('remove_participant')
+  async removeParticipant(
+    @MessageBody('id') id: string,
+    @ConnectedSocket() client: SocketWithAuth,
+  ) {
+    this.logger.debug(
+      `Attempting to remove participant ${id} from poll ${client.pollID}`,
+    );
+
+    const updatedPoll = await this.pollService.removeParticipant(
+      client.pollID,
+      id,
+    );
+
+    if (updatedPoll) {
+      this.io.to(client.pollID).emit('poll_updated', updatedPoll);
     }
   }
 

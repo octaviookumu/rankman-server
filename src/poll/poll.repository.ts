@@ -83,7 +83,7 @@ export class PollRepository {
     };
 
     try {
-      this.prismaService.participant.create({
+      await this.prismaService.participant.create({
         data: initialParticipant,
       });
 

@@ -75,16 +75,16 @@ export class PollService {
       `Creating token string for pollID: ${joinedPoll.id} and userID: ${userID}`,
     );
 
-    const signedString = await this.jwtService.signAsync(
-      {
-        pollID: joinedPoll.id,
-        name: fields.name,
-      },
-      {
-        secret: this.secret,
-        expiresIn: this.pollDuration,
-      },
-    );
+    const payload = {
+      sub: userID,
+      pollID: joinedPoll.id,
+      name: fields.name,
+    };
+
+    const signedString = await this.jwtService.signAsync(payload, {
+      secret: this.secret,
+      expiresIn: this.pollDuration,
+    });
 
     return {
       poll: joinedPoll,
@@ -92,8 +92,8 @@ export class PollService {
     };
   }
 
-  async addParticipant(addParticipant: AddParticipantFields) {
-    return this.pollRepository.addParticipant(addParticipant);
+  async addParticipant(addParticipantFields: AddParticipantFields) {
+    return this.pollRepository.addParticipant(addParticipantFields);
   }
 
   async removeParticipant(pollID: string, userID: string) {
@@ -132,5 +132,9 @@ export class PollService {
         text,
       },
     });
+  }
+
+  async getPoll(pollID: string) {
+    return this.pollRepository.getPoll(pollID);
   }
 }

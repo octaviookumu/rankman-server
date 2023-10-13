@@ -46,6 +46,8 @@ export class SocketIOAdapter extends IoAdapter {
   }
 }
 
+// Gets authorization before one connects
+// Wasn't able to add guards to handleConnect and handleDisconnect
 const createTokenMiddleware =
   (jwtService: JwtService, logger: Logger, configService: ConfigService) =>
   (socket: SocketWithAuth, next) => {
