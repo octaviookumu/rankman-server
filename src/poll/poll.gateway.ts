@@ -136,4 +136,22 @@ export class PollGateway
 
     this.io.to(client.pollID).emit('poll_updated', updatedPoll);
   }
+
+  @UseGuards(GatewayAdminGuard)
+  @SubscribeMessage('remove_nomination')
+  async removeNomination(
+    @MessageBody('id') nominationID: string,
+    @ConnectedSocket() client: SocketWithAuth,
+  ) {
+    this.logger.debug(
+      `Attempting to remove nomination ${nominationID} from poll ${client.pollID}`,
+    );
+
+    const updatedPoll = await this.pollService.removeNomination(
+      client.pollID,
+      nominationID,
+    );
+
+    this.io.to(client.pollID).emit('poll_updated', updatedPoll);
+  }
 }

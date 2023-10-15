@@ -60,6 +60,10 @@ export class PollService {
     };
   }
 
+  async getPoll(pollID: string) {
+    return this.pollRepository.getPoll(pollID);
+  }
+
   async joinPoll(fields: JoinPollFields): Promise<{
     poll: PollDBData;
     accessToken: string;
@@ -134,7 +138,7 @@ export class PollService {
     });
   }
 
-  async getPoll(pollID: string) {
-    return this.pollRepository.getPoll(pollID);
+  async removeNomination(pollID: string, nominationID: string) {
+    return this.pollRepository.removeNomination(pollID, nominationID);
   }
 }

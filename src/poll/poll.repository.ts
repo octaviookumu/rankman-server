@@ -87,9 +87,18 @@ export class PollRepository {
     };
 
     try {
-      await this.prismaService.participant.create({
-        data: initialParticipant,
-      });
+      const existingParticipant =
+        await this.prismaService.participant.findUnique({
+          where: {
+            id: userID,
+          },
+        });
+
+      if (!existingParticipant) {
+        await this.prismaService.participant.create({
+          data: initialParticipant,
+        });
+      }
 
       return this.getPoll(pollID);
     } catch (error) {
@@ -151,6 +160,33 @@ export class PollRepository {
       );
       throw new InternalServerErrorException(
         `Failed to add a nomination with nominationID/text: ${nominationID}/${nomination.text} to pollID: ${pollID}`,
+      );
+    }
+  }
+
+  async removeNomination(
+    pollID: string,
+    nominationID: string,
+  ): Promise<PollDBData> {
+    this.logger.log(
+      `Removing nominationID: ${nominationID} from pollID: ${pollID}`,
+    );
+
+    try {
+      await this.prismaService.nomination.delete({
+        where: {
+          id: nominationID,
+        },
+      });
+      return this.getPoll(pollID);
+    } catch (error) {
+      this.logger.error(
+        `Failed to remove nominationID: ${nominationID} from pollID: ${pollID}`,
+        error,
+      );
+
+      throw new InternalServerErrorException(
+        `Failed to remove nominationID: ${nominationID} from pollID: ${pollID}`,
       );
     }
   }
