@@ -3,6 +3,7 @@ import {
   InternalServerErrorException,
   Logger,
 } from '@nestjs/common';
+import { Prisma } from '@prisma/client';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { Poll } from 'src/shared';
 import {
@@ -25,7 +26,7 @@ export class PollRepository {
     pollID,
     userID,
   }: CreatePollData): Promise<PollDBData> {
-    const initialPoll: PollDBData = {
+    const initialPoll: Prisma.PollCreateInput = {
       id: pollID,
       topic,
       votesPerVoter,
@@ -56,6 +57,9 @@ export class PollRepository {
         where: {
           id: pollID,
         },
+        include: {
+          participants: true,
+        },
       });
 
       console.log('currentPoll', currentPoll);
@@ -76,10 +80,10 @@ export class PollRepository {
       `Attempting to add a participant with userID/name: ${userID}/${name} to pollID: ${pollID}`,
     );
 
-    const initialParticipant = {
+    const initialParticipant: Prisma.ParticipantCreateInput = {
       id: userID,
       name,
-      pollID,
+      poll: { connect: { id: pollID } },
     };
 
     try {
@@ -123,7 +127,7 @@ export class PollRepository {
     nominationID,
     nomination,
   }: AddNominationData): Promise<PollDBData> {
-    const initialNomination = {
+    const initialNomination: Prisma.NominationCreateInput = {
       id: nominationID,
       pollID,
       nominationUserID: nomination.userID,

@@ -80,4 +80,20 @@ export interface PollDBData {
   votesPerVoter: number;
   adminID: string;
   hasStarted: boolean;
+  participants?: ParticipantDBData[] | undefined;
+}
+
+export interface ParticipantDBData {
+  id: string;
+  name: string;
+  rankings?: string[];
+  pollID: string;
+  poll?: PollDBData;
+}
+
+export interface RankingDBData {
+  id: string;
+  participant: ParticipantDBData;
+  participantRankings: string[];
+  pollID: string;
 }

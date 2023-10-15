@@ -11,20 +11,22 @@ datasource db {
 }
 
 model Poll {
-  id            String   @unique
+  id            String        @unique
   topic         String
   votesPerVoter Int
   adminID       String
-  hasStarted    Boolean? @default(false)
+  hasStarted    Boolean?      @default(false)
+  participants  Participant[] @relation("PollParticipants")
 
   @@map(name: "poll")
 }
 
 model Participant {
-  id       String    @unique
+  id       String    @id @unique
   name     String
   rankings Ranking[] @relation("ParticipantRankings")
-  pollID   String
+  pollID   String?
+  poll     Poll?     @relation("PollParticipants", fields: [pollID], references: [id])
 
   @@map(name: "participants")
 }
