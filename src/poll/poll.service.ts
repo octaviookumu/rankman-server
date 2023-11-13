@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { BadRequestException, Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import {
@@ -8,8 +8,14 @@ import {
   JoinPollFields,
   PollDBData,
   RejoinPollFields,
+  SubmitRankingsFields,
 } from 'src/shared/interfaces';
-import { createNominationID, createPollID, createUserID } from 'src/utils';
+import {
+  createNominationID,
+  createPollID,
+  createUserID,
+  getResults,
+} from 'src/utils';
 import { PollRepository } from './poll.repository';
 
 @Injectable()
@@ -140,5 +146,43 @@ export class PollService {
 
   async removeNomination(pollID: string, nominationID: string) {
     return this.pollRepository.removeNomination(pollID, nominationID);
+  }
+
+  async startPoll(pollID: string): Promise<PollDBData> {
+    return this.pollRepository.startPoll(pollID);
+  }
+
+  async submitRankings(
+    rankingsData: SubmitRankingsFields,
+  ): Promise<PollDBData> {
+    const hasPollStarted = await this.pollRepository.getPoll(
+      rankingsData.pollID,
+    );
+
+    if (!hasPollStarted) {
+      throw new BadRequestException(
+        'Participants cannot rank until the poll has started.',
+      );
+    }
+
+    return this.pollRepository.addParticipantRankings(rankingsData);
+  }
+
+  async computeResults(pollID: string): Promise<PollDBData> {
+    const poll = await this.pollRepository.getPoll(pollID);
+    const rankings = await this.pollRepository.getRankings(pollID);
+    const nominations = await this.pollRepository.getNominations(pollID);
+
+    console.log('computer poll', poll);
+    console.log('computer rankings', rankings);
+    console.log('computer noms', nominations);
+
+    const results = getResults(rankings, nominations, poll.votesPerVoter);
+
+    return this.pollRepository.addResults(pollID, results);
+  }
+
+  async cancelPoll(pollID: string) {
+    return this.pollRepository.deletePoll(pollID);
   }
 }

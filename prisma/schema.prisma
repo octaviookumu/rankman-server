@@ -17,6 +17,7 @@ model Poll {
   adminID       String
   hasStarted    Boolean?      @default(false)
   participants  Participant[] @relation("PollParticipants")
+  results       Result[]      @relation("PollResults")
 
   @@map(name: "poll")
 }
@@ -50,10 +51,11 @@ model Ranking {
 }
 
 model Result {
-  pollID         String @unique
-  nominationID   String
+  nominationID   String  @unique
   nominationText String
-  score          String
+  score          Float
+  pollID         String?
+  poll           Poll?   @relation("PollResults", fields: [pollID], references: [id])
 
   @@map(name: "results")
 }

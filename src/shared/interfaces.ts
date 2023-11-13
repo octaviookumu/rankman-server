@@ -81,6 +81,7 @@ export interface PollDBData {
   adminID: string;
   hasStarted: boolean;
   participants?: ParticipantDBData[] | undefined;
+  rankings?: RankingDBData[] | undefined;
 }
 
 export interface ParticipantDBData {

@@ -5,10 +5,11 @@ import {
 } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { Poll } from 'src/shared';
+import { Nominations, Poll, Rankings, Result } from 'src/shared';
 import {
   AddNominationData,
   AddParticipantData,
+  AddParticipantRankingsData,
   CreatePollData,
   JoinPollFields,
   PollDBData,
@@ -116,6 +117,14 @@ export class PollRepository {
     this.logger.log(`removing userID: ${userID} from poll: ${pollID}`);
 
     try {
+      // Find and delete associated rankings
+      await this.prismaService.ranking.deleteMany({
+        where: {
+          participantID: userID,
+        },
+      });
+
+      // Now delete the participant
       await this.prismaService.participant.delete({
         where: {
           id: userID,
@@ -187,6 +196,182 @@ export class PollRepository {
 
       throw new InternalServerErrorException(
         `Failed to remove nominationID: ${nominationID} from pollID: ${pollID}`,
+      );
+    }
+  }
+
+  async startPoll(pollID: string): Promise<PollDBData> {
+    this.logger.log(`Setting hasStarted for poll: ${pollID}`);
+
+    try {
+      await this.prismaService.poll.update({
+        where: {
+          id: pollID,
+        },
+        data: {
+          hasStarted: true,
+        },
+      });
+      return this.getPoll(pollID);
+    } catch (error) {}
+  }
+
+  async addParticipantRankings({
+    pollID,
+    userID,
+    rankings,
+  }: AddParticipantRankingsData): Promise<PollDBData> {
+    this.logger.log(
+      `Attempting to add rankings for userID/name: ${userID} to pollID: ${pollID}`,
+      rankings,
+    );
+
+    const initialRanking: Prisma.RankingCreateInput = {
+      pollID: pollID,
+      participantRankings: rankings,
+      participant: {
+        connect: {
+          id: userID,
+        },
+      },
+    };
+
+    try {
+      await this.prismaService.ranking.create({
+        data: initialRanking,
+      });
+      return this.getPoll(pollID);
+    } catch (error) {}
+  }
+
+  async addResults(pollID: string, results: Result[]): Promise<PollDBData> {
+    this.logger.log(
+      `Attempting to add results to results table`,
+      JSON.stringify(results),
+    );
+
+    try {
+      await this.prismaService.result.createMany({
+        data: results.map((result) => ({
+          nominationID: result.nominationID,
+          nominationText: result.nominationText,
+          score: result.score,
+          pollID: pollID,
+        })),
+      });
+      return this.getPoll(pollID);
+    } catch (error) {
+      this.logger.error(
+        `Failed to add result for pollID: ${pollID}`,
+        results,
+        error,
+      );
+
+      throw new InternalServerErrorException(
+        `Failed to add result for pollID: ${pollID}`,
+      );
+    }
+  }
+
+  async deletePoll(pollID: string): Promise<void> {
+    this.logger.log(`Deleting poll: ${pollID}`);
+
+    try {
+      await this.prismaService.result.deleteMany({
+        where: {
+          pollID: pollID,
+        },
+      });
+
+      await this.prismaService.nomination.deleteMany({
+        where: {
+          pollID: pollID,
+        },
+      });
+
+      await this.prismaService.ranking.deleteMany({
+        where: {
+          pollID: pollID,
+        },
+      });
+
+      await this.prismaService.participant.deleteMany({
+        where: {
+          pollID: pollID,
+        },
+      });
+
+      await this.prismaService.poll.delete({
+        where: {
+          id: pollID,
+        },
+      });
+    } catch (error) {
+      this.logger.error(`Failed to delete poll: ${pollID}`, error);
+
+      throw new InternalServerErrorException(
+        `Failed to delete poll: ${pollID}`,
+      );
+    }
+  }
+
+  async getRankings(pollID: string): Promise<Rankings> {
+    this.logger.log(`Get rankings of poll: ${pollID}`);
+
+    try {
+      const pollRankings = await this.prismaService.ranking.findMany({
+        where: {
+          pollID: pollID,
+        },
+        select: {
+          participantID: true,
+          participantRankings: true,
+        },
+      });
+
+      const formattedRankings = pollRankings.reduce((result, item) => {
+        result[item.participantID] = item.participantRankings;
+        return result;
+      }, {});
+      return formattedRankings;
+    } catch (error) {
+      this.logger.error(`Failed to get rankings: ${pollID}`, error);
+
+      throw new InternalServerErrorException(
+        `Failed to get rankings: ${pollID}`,
+      );
+    }
+  }
+
+  async getNominations(pollID: string): Promise<Nominations> {
+    this.logger.log(`Get nominations of poll: ${pollID}`);
+
+    try {
+      const pollNominations = await this.prismaService.nomination.findMany({
+        where: {
+          pollID: pollID,
+        },
+        select: {
+          id: true,
+          nominationUserID: true,
+          nominationText: true,
+        },
+      });
+
+      const formattedNominations = pollNominations.reduce((result, item) => {
+        result[item.id] = {
+          userID: item.nominationUserID,
+          text: item.nominationText,
+        };
+        return result;
+      }, {});
+      console.log('formattedNominations', formattedNominations);
+      return formattedNominations;
+    } catch (error) {
+      this.logger.error(`Failed to get nominations: ${pollID}`, error);
+
+      throw new InternalServerErrorException(
+        `Failed to get nominations: ${pollID}`,
       );
     }
   }
