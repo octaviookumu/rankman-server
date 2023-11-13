@@ -7,7 +7,7 @@ import { JwtModule } from '@nestjs/jwt';
 
 @Module({
   imports: [JwtModule.register({})],
-  providers: [PollGateway, PollService, PollRepository],
+  providers: [PollService, PollRepository, PollGateway],
   controllers: [PollController],
 })
 export class PollModule {}

@@ -15,13 +15,11 @@ export interface Rankings {
   [userID: string]: string[];
 }
 
-interface Result {
+export interface Result {
   nominationID: string;
   nominationText: string;
   score: number;
 }
-
-export type Results = Result[];
 
 export interface Poll {
   id: string;
@@ -31,6 +29,6 @@ export interface Poll {
   adminID: string;
   nominations: Nominations;
   rankings: Rankings;
-  results: Results;
+  results: Result[];
   hasStarted: boolean;
 }

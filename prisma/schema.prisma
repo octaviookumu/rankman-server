@@ -11,20 +11,23 @@ datasource db {
 }
 
 model Poll {
-  id            String   @unique
+  id            String        @unique
   topic         String
   votesPerVoter Int
   adminID       String
-  hasStarted    Boolean? @default(false)
+  hasStarted    Boolean?      @default(false)
+  participants  Participant[] @relation("PollParticipants")
+  results       Result[]      @relation("PollResults")
 
   @@map(name: "poll")
 }
 
 model Participant {
-  id       String    @unique
+  id       String    @id @unique
   name     String
   rankings Ranking[] @relation("ParticipantRankings")
-  pollID   String
+  pollID   String?
+  poll     Poll?     @relation("PollParticipants", fields: [pollID], references: [id])
 
   @@map(name: "participants")
 }
@@ -39,8 +42,8 @@ model Nomination {
 }
 
 model Ranking {
-  participantID       String      @unique
-  participant         Participant @relation("ParticipantRankings", fields: [participantID], references: [id])
+  participantID       String       @unique
+  participant         Participant? @relation("ParticipantRankings", fields: [participantID], references: [id])
   participantRankings String[]
   pollID              String
 
@@ -48,10 +51,11 @@ model Ranking {
 }
 
 model Result {
-  pollID         String @unique
-  nominationID   String
+  nominationID   String  @unique
   nominationText String
-  score          String
+  score          Float
+  pollID         String?
+  poll           Poll?   @relation("PollResults", fields: [pollID], references: [id])
 
   @@map(name: "results")
 }
