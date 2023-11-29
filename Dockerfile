@@ -2,11 +2,10 @@
 FROM node:16
 
 # Create and set the working directory in the container
-WORKDIR /octavian/src/app
+WORKDIR /app
 
 # Copies the package.json and package-lock.json files from the current directory on the host machine to the /app directory in the container. The * in package*.json allows us to copy both files at once
 COPY package*.json ./
-
 COPY prisma ./prisma/
 
 # # Copy package.json and package-lock.json to the working directory
