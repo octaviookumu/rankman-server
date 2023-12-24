@@ -1,8 +1,12 @@
-import { Nominations, Rankings, Result } from 'src/shared';
+import {
+  FormattedNominations,
+  FormattedRankings,
+  Result,
+} from 'src/poll/interfaces';
 
 export const getResults = (
-  rankings: Rankings,
-  nominations: Nominations,
+  rankings: FormattedRankings,
+  nominations: FormattedNominations,
   votesPerVoter: number,
 ): Result[] => {
   try {

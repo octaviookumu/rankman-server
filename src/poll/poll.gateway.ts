@@ -9,8 +9,8 @@ import {
   ConnectedSocket,
 } from '@nestjs/websockets';
 import { PollService } from './poll.service';
-import { CreatePollDto } from './dto/create-poll.dto';
-import { UpdatePollDto } from './dto/update-poll.dto';
+// import { CreatePollDto } from './dto/create-poll.dto';
+// import { UpdatePollDto } from './dto/update-poll.dto';
 import {
   Logger,
   UseFilters,
@@ -19,10 +19,10 @@ import {
   ValidationPipe,
 } from '@nestjs/common';
 import { Namespace } from 'socket.io';
-import { SocketWithAuth } from 'src/shared/interfaces';
 import { NominationDto } from './dto/nomination.dto';
 import { WsCatchAllFilter } from './exceptions/ws-catch-all-filter';
 import { GatewayAdminGuard } from 'src/auth/gateway-admin.guard';
+import { SocketWithAuth } from './interfaces';
 
 @UsePipes(new ValidationPipe())
 @UseFilters(new WsCatchAllFilter())

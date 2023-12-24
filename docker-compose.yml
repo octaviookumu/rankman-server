@@ -9,8 +9,3 @@ services:
       - ${DB_PORT}:5432 # take the 5432 port in the container and expose it as the DB_PORT
     env_file:
       - .env
-    volumes:
-      - db-data:/var/lib/postgresql/data
-
-volumes:
-  db-data:

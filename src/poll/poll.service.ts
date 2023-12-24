@@ -2,20 +2,20 @@ import { BadRequestException, Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import {
-  AddNominationFields,
-  AddParticipantFields,
-  CreatePollFields,
-  JoinPollFields,
-  PollDBData,
-  RejoinPollFields,
-  SubmitRankingsFields,
-} from 'src/shared/interfaces';
-import {
   createNominationID,
   createPollID,
   createUserID,
   getResults,
 } from 'src/utils';
+import {
+  AddNominationFields,
+  AddParticipantFields,
+  CreatePollFields,
+  JoinPollFields,
+  Poll,
+  RejoinPollFields,
+  SubmitRankingsFields,
+} from './interfaces';
 import { PollRepository } from './poll.repository';
 
 @Injectable()
@@ -31,7 +31,7 @@ export class PollService {
   pollDuration = this.configService.get('POLL_DURATION');
 
   async createPoll(fields: CreatePollFields): Promise<{
-    poll: PollDBData;
+    poll: Poll;
     accessToken: string;
   }> {
     this.logger.debug(`fields: `, fields);
@@ -71,7 +71,7 @@ export class PollService {
   }
 
   async joinPoll(fields: JoinPollFields): Promise<{
-    poll: PollDBData;
+    poll: Poll;
     accessToken: string;
   }> {
     const userID = createUserID();
@@ -133,7 +133,7 @@ export class PollService {
     pollID,
     userID,
     text,
-  }: AddNominationFields): Promise<PollDBData> {
+  }: AddNominationFields): Promise<Poll> {
     return this.pollRepository.addNomination({
       pollID,
       nominationID: createNominationID(),
@@ -148,13 +148,11 @@ export class PollService {
     return this.pollRepository.removeNomination(pollID, nominationID);
   }
 
-  async startPoll(pollID: string): Promise<PollDBData> {
+  async startPoll(pollID: string): Promise<Poll> {
     return this.pollRepository.startPoll(pollID);
   }
 
-  async submitRankings(
-    rankingsData: SubmitRankingsFields,
-  ): Promise<PollDBData> {
+  async submitRankings(rankingsData: SubmitRankingsFields): Promise<Poll> {
     const hasPollStarted = await this.pollRepository.getPoll(
       rankingsData.pollID,
     );
@@ -168,7 +166,7 @@ export class PollService {
     return this.pollRepository.addParticipantRankings(rankingsData);
   }
 
-  async computeResults(pollID: string): Promise<PollDBData> {
+  async computeResults(pollID: string): Promise<Poll> {
     const poll = await this.pollRepository.getPoll(pollID);
     const rankings = await this.pollRepository.getRankings(pollID);
     const nominations = await this.pollRepository.getNominations(pollID);

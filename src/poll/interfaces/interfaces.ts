@@ -1,8 +1,7 @@
-import { Request } from 'express';
 import { Nomination } from './poll-interfaces';
 import { Socket } from 'socket.io';
 
-// service types
+// service interfaces
 export interface CreatePollFields {
   topic: string;
   votesPerVoter: number;
@@ -39,6 +38,7 @@ export interface SubmitRankingsFields {
 }
 
 // repository types
+// used when adding to db. Might rename this file
 export interface CreatePollData {
   pollID: string;
   topic: string;
@@ -64,6 +64,12 @@ export interface AddParticipantRankingsData {
   rankings: string[];
 }
 
+export interface AddResultData {
+  nominationID: string;
+  nominationText: string;
+  score: number;
+}
+
 // guard types
 export interface AuthPayload {
   userID: string;
@@ -73,28 +79,3 @@ export interface AuthPayload {
 
 export type RequestWithAuth = Request & AuthPayload;
 export type SocketWithAuth = Socket & AuthPayload;
-
-export interface PollDBData {
-  id: string;
-  topic: string;
-  votesPerVoter: number;
-  adminID: string;
-  hasStarted: boolean;
-  participants?: ParticipantDBData[] | undefined;
-  rankings?: RankingDBData[] | undefined;
-}
-
-export interface ParticipantDBData {
-  id: string;
-  name: string;
-  rankings?: string[];
-  pollID: string;
-  poll?: PollDBData;
-}
-
-export interface RankingDBData {
-  id: string;
-  participant: ParticipantDBData;
-  participantRankings: string[];
-  pollID: string;
-}

@@ -18,6 +18,7 @@ model Poll {
   hasStarted    Boolean?      @default(false)
   participants  Participant[] @relation("PollParticipants")
   results       Result[]      @relation("PollResults")
+  nominations   Nomination[]  @relation("PollNominations")
 
   @@map(name: "poll")
 }
@@ -33,10 +34,11 @@ model Participant {
 }
 
 model Nomination {
-  id               String @unique
+  id               String  @unique
   nominationUserID String
   nominationText   String
   pollID           String
+  poll             Poll?   @relation("PollNominations",  fields: [pollID], references: [id])
 
   @@map(name: "nominations")
 }

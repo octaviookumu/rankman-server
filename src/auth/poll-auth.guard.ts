@@ -8,7 +8,7 @@ import {
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { Observable } from 'rxjs';
-import { RequestWithAuth } from 'src/shared/interfaces';
+// import { RequestWithAuth } from 'src/poll/interfaces';
 
 @Injectable()
 export class PollAuthGuard implements CanActivate {
@@ -22,7 +22,8 @@ export class PollAuthGuard implements CanActivate {
   canActivate(
     context: ExecutionContext,
   ): boolean | Promise<boolean> | Observable<boolean> {
-    const request: RequestWithAuth = context.switchToHttp().getRequest();
+    // RequestWithAuth
+    const request = context.switchToHttp().getRequest();
     this.logger.debug(`Checking for auth token on request body`, request.body);
 
     const { accessToken } = request.body;
