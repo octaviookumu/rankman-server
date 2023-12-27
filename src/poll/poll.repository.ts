@@ -62,6 +62,8 @@ export class PollRepository {
         include: {
           participants: true,
           nominations: true,
+          rankings: true,
+          results: true,
         },
       });
 
@@ -231,11 +233,15 @@ export class PollRepository {
     );
 
     const initialRanking: Prisma.RankingCreateInput = {
-      pollID: pollID,
       participantRankings: rankings,
       participant: {
         connect: {
           id: userID,
+        },
+      },
+      poll: {
+        connect: {
+          id: pollID,
         },
       },
     };

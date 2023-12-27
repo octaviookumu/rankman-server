@@ -40,8 +40,8 @@ export interface Result {
 }
 
 export interface Ranking {
-  id: string;
-  participant: Participant;
+  participantID: string;
+  participant?: Participant;
   participantRankings: string[];
   pollID: string;
 }
@@ -55,6 +55,7 @@ export interface Poll {
   participants?: Participant[] | undefined;
   nominations?: NominationData[] | undefined;
   rankings?: Ranking[] | undefined;
+  results?: Result[] | undefined;
 }
 
 export interface FormattedRankings {
