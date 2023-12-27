@@ -8,9 +8,9 @@ import {
   ValidationPipe,
 } from '@nestjs/common';
 import { PollAuthGuard } from 'src/auth/poll-auth.guard';
-import { RequestWithAuth } from 'src/shared/interfaces';
 import { CreatePollDto } from './dto/create-poll.dto';
 import { JoinPollDto } from './dto/join-poll.dto';
+import { RequestWithAuth } from './interfaces';
 import { PollService } from './poll.service';
 
 @UsePipes(new ValidationPipe())

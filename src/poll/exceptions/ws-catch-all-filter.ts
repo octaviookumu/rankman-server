@@ -4,7 +4,7 @@ import {
   Catch,
   ExceptionFilter,
 } from '@nestjs/common';
-import { SocketWithAuth } from 'src/shared/interfaces';
+import { SocketWithAuth } from '../interfaces';
 import {
   WsBadRequestException,
   WsTypeException,

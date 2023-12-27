@@ -5,15 +5,16 @@ import {
 } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { Nominations, Poll, Rankings, Result } from 'src/shared';
 import {
   AddNominationData,
   AddParticipantData,
   AddParticipantRankingsData,
+  AddResultData,
   CreatePollData,
-  JoinPollFields,
-  PollDBData,
-} from 'src/shared/interfaces';
+  FormattedNominations,
+  FormattedRankings,
+  Poll,
+} from './interfaces';
 
 @Injectable()
 export class PollRepository {
@@ -26,7 +27,7 @@ export class PollRepository {
     topic,
     pollID,
     userID,
-  }: CreatePollData): Promise<PollDBData> {
+  }: CreatePollData): Promise<Poll> {
     const initialPoll: Prisma.PollCreateInput = {
       id: pollID,
       topic,
@@ -50,7 +51,7 @@ export class PollRepository {
     }
   }
 
-  async getPoll(pollID: string): Promise<PollDBData> {
+  async getPoll(pollID: string): Promise<Poll> {
     this.logger.log(`Attempting to get poll with: ${pollID}`);
 
     try {
@@ -60,15 +61,17 @@ export class PollRepository {
         },
         include: {
           participants: true,
+          nominations: true,
+          rankings: true,
+          results: true,
         },
       });
 
       console.log('currentPoll', currentPoll);
+
       return currentPoll;
     } catch (error) {
       console.log('error', error);
-    } finally {
-      await this.prismaService.$disconnect();
     }
   }
 
@@ -76,7 +79,7 @@ export class PollRepository {
     pollID,
     userID,
     name,
-  }: AddParticipantData): Promise<PollDBData> {
+  }: AddParticipantData): Promise<Poll> {
     this.logger.log(
       `Attempting to add a participant with userID/name: ${userID}/${name} to pollID: ${pollID}`,
     );
@@ -113,7 +116,7 @@ export class PollRepository {
     }
   }
 
-  async removeParticipant(pollID: string, userID: string): Promise<PollDBData> {
+  async removeParticipant(pollID: string, userID: string): Promise<Poll> {
     this.logger.log(`removing userID: ${userID} from poll: ${pollID}`);
 
     try {
@@ -144,12 +147,18 @@ export class PollRepository {
     pollID,
     nominationID,
     nomination,
-  }: AddNominationData): Promise<PollDBData> {
+  }: AddNominationData): Promise<Poll> {
+    // About connect: Prisma associates this new Nomination with the Poll record whose ID matches the pollID provided
+
     const initialNomination: Prisma.NominationCreateInput = {
       id: nominationID,
-      pollID,
       nominationUserID: nomination.userID,
       nominationText: nomination.text,
+      poll: {
+        connect: {
+          id: pollID,
+        },
+      },
     };
 
     this.logger.log(
@@ -173,10 +182,7 @@ export class PollRepository {
     }
   }
 
-  async removeNomination(
-    pollID: string,
-    nominationID: string,
-  ): Promise<PollDBData> {
+  async removeNomination(pollID: string, nominationID: string): Promise<Poll> {
     this.logger.log(
       `Removing nominationID: ${nominationID} from pollID: ${pollID}`,
     );
@@ -200,7 +206,7 @@ export class PollRepository {
     }
   }
 
-  async startPoll(pollID: string): Promise<PollDBData> {
+  async startPoll(pollID: string): Promise<Poll> {
     this.logger.log(`Setting hasStarted for poll: ${pollID}`);
 
     try {
@@ -220,18 +226,22 @@ export class PollRepository {
     pollID,
     userID,
     rankings,
-  }: AddParticipantRankingsData): Promise<PollDBData> {
+  }: AddParticipantRankingsData): Promise<Poll> {
     this.logger.log(
       `Attempting to add rankings for userID/name: ${userID} to pollID: ${pollID}`,
       rankings,
     );
 
     const initialRanking: Prisma.RankingCreateInput = {
-      pollID: pollID,
       participantRankings: rankings,
       participant: {
         connect: {
           id: userID,
+        },
+      },
+      poll: {
+        connect: {
+          id: pollID,
         },
       },
     };
@@ -244,7 +254,7 @@ export class PollRepository {
     } catch (error) {}
   }
 
-  async addResults(pollID: string, results: Result[]): Promise<PollDBData> {
+  async addResults(pollID: string, results: AddResultData[]): Promise<Poll> {
     this.logger.log(
       `Attempting to add results to results table`,
       JSON.stringify(results),
@@ -315,7 +325,7 @@ export class PollRepository {
     }
   }
 
-  async getRankings(pollID: string): Promise<Rankings> {
+  async getRankings(pollID: string): Promise<FormattedRankings> {
     this.logger.log(`Get rankings of poll: ${pollID}`);
 
     try {
@@ -343,7 +353,7 @@ export class PollRepository {
     }
   }
 
-  async getNominations(pollID: string): Promise<Nominations> {
+  async getNominations(pollID: string): Promise<FormattedNominations> {
     this.logger.log(`Get nominations of poll: ${pollID}`);
 
     try {

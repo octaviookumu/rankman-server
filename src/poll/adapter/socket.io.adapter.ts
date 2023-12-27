@@ -2,8 +2,8 @@ import { INestApplicationContext, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { IoAdapter } from '@nestjs/platform-socket.io';
-import { SocketWithAuth } from 'src/shared/interfaces';
 import { ServerOptions, Server } from 'socket.io';
+import { SocketWithAuth } from '../interfaces';
 
 export class SocketIOAdapter extends IoAdapter {
   private readonly logger = new Logger(SocketIOAdapter.name);

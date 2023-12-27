@@ -1,9 +1,9 @@
-import { Nominations, Rankings } from 'src/shared';
 import { getResults } from '../../utils';
+import { FormattedNominations, FormattedRankings } from '../interfaces';
 
 describe('getResults', () => {
   it('computes and sorts results', () => {
-    const nominations: Nominations = {
+    const nominations: FormattedNominations = {
       '01': {
         userID: 'user1',
         text: 'nomination1',
@@ -22,7 +22,7 @@ describe('getResults', () => {
       },
     };
 
-    const rankings: Rankings = {
+    const rankings: FormattedRankings = {
       participant1: ['02', '01', '03'],
       participant2: ['04', '01', '02'],
       participant3: ['03', '02', '01'],
