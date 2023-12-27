@@ -70,8 +70,6 @@ export class PollRepository {
       return currentPoll;
     } catch (error) {
       console.log('error', error);
-    } finally {
-      await this.prismaService.$disconnect();
     }
   }
 

@@ -1,6 +1,8 @@
 import {
   FormattedNominations,
+  FormattedParticipants,
   FormattedRankings,
+  Poll,
   Result,
 } from 'src/poll/interfaces';
 
@@ -49,4 +51,15 @@ export const getResults = (
   } catch (error) {
     console.log('Failed to return results', error);
   }
+};
+
+export const formatParticipants = (poll: Poll): FormattedParticipants => {
+  const formattedParticipants = poll.participants.reduce(
+    (result, participant) => {
+      result[participant.id] = participant;
+      return result;
+    },
+    {},
+  );
+  return formattedParticipants;
 };

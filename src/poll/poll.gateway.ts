@@ -77,6 +77,7 @@ export class PollGateway
   }
 
   async handleDisconnect(client: SocketWithAuth) {
+    this.logger.log(`handleDisconnect`);
     const sockets = this.io.sockets;
     const { pollID, userID, id } = client;
     const updatedPoll = await this.pollService.removeParticipant(

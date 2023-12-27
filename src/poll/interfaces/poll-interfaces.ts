@@ -6,6 +6,17 @@ export interface Participant {
   poll?: Poll;
 }
 
+interface FormattedParticipant {
+  name: string;
+  rankings?: string[];
+  pollID: string;
+  poll?: Poll;
+}
+
+export interface FormattedParticipants {
+  [participantId: string]: FormattedParticipant;
+}
+
 export interface Nomination {
   userID: string;
   text: string;
